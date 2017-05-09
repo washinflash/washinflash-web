@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd  
+	http://www.springframework.org/schema/context  
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd  
+	http://www.springframework.org/schema/mvc  
+	http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+	http://www.springframework.org/schema/tx  
+	http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+
+	<!-- To Qualify for component scan (bean creation) and auto-injection -->
+	<context:component-scan
+		base-package="
+		com.washinflash.rest.webservice,
+		com.washinflash.rest.businessservice,
+		com.washinflash.rest.dao,
+		com.washinflash.admin.action,
+		com.washinflash.admin.businessservice,
+		com.washinflash.admin.dao,
+		com.washinflash.admin.validator" />
+
+	<!-- MVC framework will be annotation based -->
+	<mvc:annotation-driven /> 
+
+	<!-- To qualify for the annotation based transaction -->
+	<!-- <tx:annotation-driven transaction-manager="transactionManager" /> -->
+	 
+	<!-- Defining the actual transaction manager -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- Data source information for the DB connection -->
+	<!-- For Openshift Production -->
+<!-- 	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://127.12.89.2:3306/WASHINFLASH" />
+		<property name="username" value="adminlI2wIUn" />
+		<property name="password" value="AzthBEbYyNAD" />
+	</bean> -->
+ 
+ 	<!-- Data source information for the DB connection -->
+	<!-- For Local MySQL-->
+<!-- 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"> 
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/WASHINFLASH" />
+		<property name="username" value="root" />
+		<property name="password" value="" />
+	</bean> -->
+	
+	
+ 	<!-- Data source information for the DB connection -->
+	<!-- For Local HSQL -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"> 
+		<property name="driverClassName" value="org.hsqldb.jdbc.JDBCDriver" />
+		<property name="url" value="jdbc:hsqldb://C:\\Saroj\\Project\\Washinflash\\HSQL\\WASHINFLASH" />
+		<property name="username" value="" />
+		<property name="password" value="" />
+	</bean>	
+
+	<!-- Required to resolve the view (JSP) path -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- Required to successfully get the resources (.css, .js etc) from server -->
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+
+	<!-- Interceptor to check the user authentication -->
+	<mvc:interceptors>
+		<bean class="com.washinflash.admin.interceptor.AuthenticationInterceptor" />
+	</mvc:interceptors>
+
+	<!-- Required to read the properties file for validation -->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basename" value="classpath:messages.properties" />
+    </bean>
+	
+	<!-- Required to read the properties file from controller -->
+	<context:property-placeholder location="classpath:messages.properties"/>
+	
+	<!-- Required to set the initialize servlet context during startup -->	
+	<bean id="servletContextInitializer" class="com.washinflash.common.helper.ServletContextInitializer"/>
+
+	<!-- Task will be annotation based -->
+    <task:annotation-driven executor="defaultExecutor" scheduler="defaultScheduler"/>
+	<task:executor id="defaultExecutor" pool-size="5"/>
+	<task:scheduler id="defaultScheduler" pool-size="5"/>
+     
+     <!-- Scheduler Job -->
+    <bean id="pickupDeliveryNotificationScheduler" class="com.washinflash.admin.scheduler.PickupDeliveryNotificationScheduler" />
+
+</beans>
